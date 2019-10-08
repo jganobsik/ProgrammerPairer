@@ -20,31 +20,31 @@ class Session < ApplicationRecord
 
   def assign_partners
     until @participants.length.zero?
-
+      @team = participants.sample(2)
+      finalize_team(@team[0], @team[1])
     end
   end
 
   def finalize_team(user1, user2)
     teams << [user1, user2]
-    participants.delete(user1, user2)
-  end 
+    user1.add_past_partner(user2)
+    user2.add_past_partner(user1)
+    participants.delete(user1)
+    participants.delete(user2)
+  end
 
-  def assign_unknown_partners
+  def assign_unfamiliar_partners
     @participants.each do |participant|
-      @evaluated_partners = []
-      while @participants.include?(participant) 
-        @potential_partner = participants.sample
-        # make team if user has not listed the potential partner as a friend
-        if participant.evaluate_partner(@potential_partner) < 2
-          finalize_team(participant, @potential_partner)
-        # make team of friends if all other eligible participants have been evaluated
-        elsif @evaluated_partners.length == @participants.length - 2
-          finalize_team(participant, @potential_partner)
-        else 
-          @evaluated_partners << @potential_partner
-          @potential_partner = @participants.except(@evaluated_partners).sample
-        end
-      end
+      @potential_partners = @participants.keep_if{|p| !participant.knows(p)}
+    if !@potential_partners.zero? && @participants.length > 2
+      finalize_team(participant, )
+    else 
+  end
+  def make_uneven_team_of_strangers
+    @users = @participants.sample(3)
+    @evaluated_partners = []
+    if @users[1].knows(@users[2]) 
+      
     end
   end
 
@@ -52,8 +52,7 @@ class Session < ApplicationRecord
     @users = @participants.sample(3)
     teams << [@users]
     @users.each do |user|
-    @participants.delete(user)
+      @participants.delete(user)
     end
   end
-
 end
