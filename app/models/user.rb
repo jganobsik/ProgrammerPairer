@@ -5,7 +5,7 @@ class User < ApplicationRecord
   has_many :organizers, through: :sessions
 
   def knows?(user)
-    friends.include?(user.id.to_s)
+    friends.include?(user.id.to_s) || user.id == id
   end
 
   def add_friend(user)
@@ -13,16 +13,10 @@ class User < ApplicationRecord
   end
 
   def has_worked_with?(user)
-    past_partners.include?(user.id.to_s)
+    past_partners.include?(user.id.to_s) || user.id == id
   end
 
   def add_past_partner(user)
     past_partners << user.id.to_s unless has_worked_with?(user)
-  end
-
-  def add_multiple_past_partners(user_array)
-    user_array.each do |u|
-      past_partners << u.id.to_s unless has_worked_with?(user)
-    end
   end
 end

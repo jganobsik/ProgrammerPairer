@@ -17,13 +17,6 @@ class Session < ApplicationRecord
     users << user
   end
 
-  def assign_partners
-    until @participants.length.zero?
-      @team = participants.sample(2)
-      finalize_team(@team[0], @team[1])
-    end
-  end
-
   def finalize_team(user1, user2)
     teams << [user1, user2]
     add_partners([user1, user2])
@@ -31,17 +24,8 @@ class Session < ApplicationRecord
   end
 
   def add_partners(user_array)
-    if user_array.length == 2
-      user_array[1].add_past_partner(user_array[2])
-      user_array[2].add_past_partner(user_array[1])
-    elsif user_array.length == 3
-      user_array[1].add_past_partner(user_array[2])
-      user_array[1].add_past_partner(user_array[3])
-      user_array[2].add_past_partner(user_array[1])
-      user_array[2].add_past_partner(user_array[3])
-      user_array[3].add_past_partner(user_array[1])
-      user_array[3].add_past_partner(user_array[2])
-    end
+    user_array[0].add_past_partner(user_array[1])
+    user_array[1].add_past_partner(user_array[0])
   end
 
   def delete_from_participants(user_array)
@@ -50,12 +34,14 @@ class Session < ApplicationRecord
     end
   end
 
-  def generate_potential_partners(user_array)
-    user_array.each do |_u|
-      @participants.keep_if { |pp| !p.knows?(pp) }
+
+  def assign_partners
+    until @participants.length.zero?
+      @team = participants.sample(2)
+      finalize_team(@team[0], @team[1])
     end
   end
-
+ 
   def assign_unfamiliar_partners
     @participants.each do |p|
       @potential_partners = @participants.keep_if { |pp| !p.knows?(pp) }
@@ -65,16 +51,19 @@ class Session < ApplicationRecord
     end
   end
 
-  def make_uneven_team(_users)
-    if @users[1].knows?(@users[2]) || @users[2].knows?(@users[3]) || @users[1].knows?(@users[2])
-    end
+  def make_unfamiliar_uneven_team(user_array)
+    teams[user_array]
+    @sub_teams = [[user_array[0], user_array[1]], [user_array[1], user_array[2]], [user_array[0], user_array[2]]]
+    delete_from_participants(user_array)
   end
 
   def make_random_uneven_team
     @users = @participants.sample(3)
     teams << [@users]
-    @users.each do |user|
-      @participants.delete(user)
+    @sub_teams = [[@users[0], @users[1]], [@users[1], @users[2]], [@users[0], @users[2]]]
+    @sub_teams.each do |arr|
+      add_partners(arr)
     end
+    delete_from_participants(@users)
   end
 end
