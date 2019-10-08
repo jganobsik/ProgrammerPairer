@@ -9,4 +9,8 @@ class User < ApplicationRecord
     def add_friend(user)
         friends << user.name
     end 
+
+    def add_past_partner(user)
+        past_partners << user.name
+    end
 end
