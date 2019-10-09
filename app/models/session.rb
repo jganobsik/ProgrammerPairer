@@ -30,7 +30,7 @@ class Session < ApplicationRecord
 
   def delete_from_participants(user_array)
     user_array.each do |u|
-    @participants.delete(u)
+      @participants.delete(u)
     end
   end
 
@@ -97,7 +97,7 @@ class Session < ApplicationRecord
         @partner = find_stranger(p)
         if @partner == false && find_non_friend(p) == false
           finalize_team(p, @participants.sample)
-        else 
+        else
           finalize_team(p, find_non_friend(p))
         end
       end
