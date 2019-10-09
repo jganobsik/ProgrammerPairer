@@ -30,34 +30,37 @@ class Session < ApplicationRecord
 
   def delete_from_participants(user_array)
     user_array.each do |u|
-      @participants.delete(u)
+    @participants.delete(u)
     end
   end
 
   def find_non_friend(user)
     @potential_partners = @participants.clone.keep_if { |pp| !user.knows?(pp) }
-    if potential_partners.empty?
+    @potential_partners.delete(user)
+    if @potential_partners.empty?
       false
     else
-      potential_partners.sample
+      @potential_partners.sample
     end
   end
 
   def find_new_partner(user)
     @potential_partners = @participants.clone.keep_if { |pp| !user.has_worked_with?(pp) }
-    if potential_partners.empty?
+    @potential_partners.delete(user)
+    if @potential_partners.empty?
       false
     else
-      potential_partners.sample
+      @potential_partners.sample
     end
   end
 
   def find_stranger(user)
     @potential_partners = @participants.clone.keep_if { |pp| !user.has_worked_with?(pp) && !user.knows?(pp) }
-    if potential_partners.empty?
+    @potential_partners.delete(user)
+    if @potential_partners.empty?
       false
     else
-      potential_partners.sample
+      @potential_partners.sample
     end
   end
 
@@ -69,13 +72,13 @@ class Session < ApplicationRecord
   end
 
   def assign_partners_no_friends
-    until @participants.length == 2
+    until @participants.length < 3
       @participants.each do |p|
         @partner = find_non_friend(p)
         @partner == false ? finalize_team(p, @participants.sample) : finalize_team(p, @partner)
       end
     end
-    finalize_team(@participants[0], @participants[1])
+    assign_partners
   end
 
   def assign_partners_avoid_past
@@ -85,7 +88,7 @@ class Session < ApplicationRecord
         @partner == false ? finalize_team(p, @participants.sample) : finalize_team(p, @partner)
       end
     end
-    finalize_team(@participants[0], @participants[1])
+    assign_partners
   end
 
   def assign_partners_no_friends_avoid_past
@@ -99,7 +102,7 @@ class Session < ApplicationRecord
         end
       end
     end
-    finalize_team(@participants[0], @participants[1])
+    assign_partners
   end
 
   def make_uneven_team(user_array)

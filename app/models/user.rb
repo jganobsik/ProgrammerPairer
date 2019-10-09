@@ -21,7 +21,7 @@ class User < ApplicationRecord
   end
 
   def add_past_partner(user)
-    if has_worked_with?(user) || user.id == id
+    if has_worked_with?(user) || user.id == self.id
       nil
     else
       past_partners << user.id
