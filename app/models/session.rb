@@ -34,6 +34,32 @@ class Session < ApplicationRecord
     end
   end
 
+  def find_non_friend(user)
+    @potential_partners = @participants.clone.keep_if { |pp| !user.knows?(pp) }
+    if potential_partners.empty?
+      false
+    else
+      potential_partners.sample
+    end
+  end
+
+  def find_new_partner(user)
+    @potential_partners = @participants.clone.keep_if { |pp| !user.has_worked_with?(pp) }
+    if potential_partners.empty?
+      false
+    else
+      potential_partners.sample
+    end
+  end
+
+  def find_stranger(user)
+    @potential_partners = @participants.clone.keep_if { |pp| !user.has_worked_with?(pp) && !user.has_worked_with?(pp) }
+    if potential_partners.empty?
+      false
+    else
+      potential_partners.sample
+    end
+  end
 
   def assign_partners
     until @participants.length.zero?
@@ -41,17 +67,28 @@ class Session < ApplicationRecord
       finalize_team(@team[0], @team[1])
     end
   end
- 
-  def assign_unfamiliar_partners
-    @participants.each do |p|
-      @potential_partners = @participants.keep_if { |pp| !p.knows?(pp) }
-      if !@potential_partners.zero? && @participants.length > 2
-        finalize_team(p, @potential_partners.sample)
+
+  def assign_partners_no_friends
+    until @participants.length == 2
+      @participants.each do |p|
+        @partner = find_non_friend(p)
+        @partner == false ? finalize_team(p, @participants.sample) : finalize_team(p, @partner)
       end
     end
+    finalize_team(@participants[0], @participants[1])
   end
 
-  def make_unfamiliar_uneven_team(user_array)
+  def assign_partners_avoid_past
+    until @participants.length == 2
+      @participants.each do |p|
+        @partner = find_new_partner(p)
+        @partner == false ? finalize_team(p, @participants.sample) : finalize_team(p, @partner)
+      end
+    end
+    finalize_team(@participants[0], @participants[1])
+  end
+
+  def make_uneven_team(user_array)
     teams[user_array]
     @sub_teams = [[user_array[0], user_array[1]], [user_array[1], user_array[2]], [user_array[0], user_array[2]]]
     delete_from_participants(user_array)
