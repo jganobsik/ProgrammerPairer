@@ -53,7 +53,7 @@ class Session < ApplicationRecord
   end
 
   def find_stranger(user)
-    @potential_partners = @participants.clone.keep_if { |pp| !user.has_worked_with?(pp) && !user.has_worked_with?(pp) }
+    @potential_partners = @participants.clone.keep_if { |pp| !user.has_worked_with?(pp) && !user.knows?(pp) }
     if potential_partners.empty?
       false
     else
@@ -83,6 +83,20 @@ class Session < ApplicationRecord
       @participants.each do |p|
         @partner = find_new_partner(p)
         @partner == false ? finalize_team(p, @participants.sample) : finalize_team(p, @partner)
+      end
+    end
+    finalize_team(@participants[0], @participants[1])
+  end
+
+  def assign_partners_no_friends_avoid_past
+    until @participants.length == 2
+      @participants.each do |p|
+        @partner = find_stranger(p)
+        if @partner == false && find_non_friend(p) == false
+          finalize_team(p, @participants.sample)
+        else 
+          finalize_team(p, find_non_friend(p))
+        end
       end
     end
     finalize_team(@participants[0], @participants[1])
