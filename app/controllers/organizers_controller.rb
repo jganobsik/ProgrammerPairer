@@ -14,7 +14,6 @@ class OrganizersController < ApplicationController
       render :new
     end
   end
-
   private
 
   def organizer_params
